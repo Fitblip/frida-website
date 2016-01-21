@@ -1,0 +1,1999 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+  xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+  >
+<channel>
+    <title xml:lang="en">Frida</title>
+    <atom:link type="application/atom+xml" href="http://www.frida.re/feed/" rel="self"/>
+    <link>http://www.frida.re</link>
+    <pubDate>Thu, 21 Jan 2016 00:41:21 -0800</pubDate>
+    <lastBuildDate>Thu, 21 Jan 2016 00:41:21 -0800</lastBuildDate>
+    <language>en-US</language>
+    <description>Inject JavaScript to explore native apps on Windows, Mac, Linux and iOS.</description>
+    
+    <item>
+        <title>Frida 6.1 Released</title>
+        <link>http://www.frida.re/news/2016/01/14/frida-6-1-released/</link>
+        <pubDate>Thu, 14 Jan 2016 10:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2016/01/14/frida-6-1-released</guid>
+        <description><![CDATA[ <p>Some time ago <a href="https://github.com/s1341">@s1341</a> ported Frida to QNX, and just a
+few weeks back he was running into memory footprint issues when using Frida on
+embedded ARM devices. This was right after he contributed pull-requests porting
+Frida to linux-arm. We started realizing that it might be time for a new
+JavaScript runtime, and agreed that <a href="http://duktape.org/">Duktape</a> seemed like a
+great fit for our needs.</p>
+
+<p>This runtime has now landed, all tests are passing, and it even beats our V8
+runtime on the measured overhead for a call to a hooked function with an empty
+<em>onEnter</em>/<em>onLeave</em> callback. To give you an idea:</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh">…/interceptor_on_enter_performance: V8 <span class="nv">min</span><span class="o">=</span>2 <span class="nv">max</span><span class="o">=</span>31 <span class="nv">avg</span><span class="o">=</span>2 OK
+…/interceptor_on_enter_performance: DUK <span class="nv">min</span><span class="o">=</span>1 <span class="nv">max</span><span class="o">=</span>2 <span class="nv">avg</span><span class="o">=</span>1 OK</code></pre></figure>
+
+<p>(Numbers are in microseconds, measured on a 4 GHz i7 running OS X 10.11.2.)</p>
+
+<p>Anyway, even if that comparison isn’t entirely fair, as we do some clever
+recycling and copy-on-write tricks that we don’t yet do in our V8 runtime, this
+new runtime is already quite impressive. It also allows us to run on really tiny
+devices, and the performance difference between a roaring JIT-powered monster
+like V8 and a pure interpreter might not really matter for most users of Frida.</p>
+
+<p>So starting with this release we are also including this brand new runtime
+in all of our prebuilt binaries so you can try it out and tell us how it works
+for you. It only adds a few hundred kilobytes of footprint, which is nothing
+compared to the 6 MB that V8 adds per architecture slice. Please try it out
+by passing <code class="highlighter-rouge">--disable-jit</code> to the CLI tools, or calling <code class="highlighter-rouge">session.disable_jit()</code>
+before the first call to <code class="highlighter-rouge">session.create_script()</code>.</p>
+
+<p>Considering that this new runtime also solves some issues that would require a
+lot of work to fix in our JavaScriptCore runtime, like ignoring calls from
+background threads and avoid poisoning the app’s heap, we decided to get rid
+of that runtime and switch to this new Duktape-based runtime on OSes where V8
+cannot currently run, like on iOS 9. We feature-detect this at runtime, so you
+still get to use V8 on iOS 8 like before – unless you explicitly <code class="highlighter-rouge">--disable-jit</code>
+as just mentioned.</p>
+
+<p>So in closing, here’s a summary of the changes:</p>
+
+<p>6.1.0:</p>
+
+<ul>
+  <li>core: replace the JavaScriptCore runtime with its successor built on Duktape</li>
+  <li>core: add <em>disable_jit()</em> to allow users to try out the new Duktape engine</li>
+  <li>core: fix crash on Linux when injecting into processes where <em>pthread_create</em>
+      has never been called/bound yet</li>
+  <li>core: add support for linux-armhf (e.g. Raspberry Pi)</li>
+  <li>python: add <em>disable_jit()</em> to Session</li>
+  <li>node: add <em>disableJit()</em> to Session</li>
+  <li>CLI tools: add <em>–disable-jit</em> switch</li>
+  <li>frida-repl: upgrade to latest prompt-toolkit</li>
+  <li>frida-trace: fix crash when attempting to trace partially resolved imports</li>
+  <li>frida-trace: stick to ES5 in the generated handlers for Duktape compatibility</li>
+</ul>
+
+<p>6.1.1:</p>
+
+<ul>
+  <li>core: fix synchronization logic and error-handling bugs in the Duktape runtime</li>
+</ul>
+
+<p>6.1.2:</p>
+
+<ul>
+  <li>core: fix Android regression resulting in crash on inject</li>
+  <li>core: fix Python 3.x build regression</li>
+  <li>clr: add <em>DisableJit()</em> to Session</li>
+</ul>
+
+<p>6.1.3:</p>
+
+<ul>
+  <li>core: give the iOS frida-helper all the entitlements that the Preferences app
+      has, so system session scripts can read and write system configuration</li>
+  <li>core: changes to support AppContainer ACL on temporary directory/files within</li>
+  <li>node: fix pid check so it allows attaching to the system session</li>
+</ul>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 6.0 Released</title>
+        <link>http://www.frida.re/news/2015/11/11/frida-6-0-released/</link>
+        <pubDate>Wed, 11 Nov 2015 10:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/11/11/frida-6-0-released</guid>
+        <description><![CDATA[ <p>Epic release this time, with brand new iOS 9 support and improvements all over
+the place. For some more background, check out my blog posts <a href="https://www.nowsecure.com/blog/2015/11/16/ios-9-reverse-engineering-with-javascript/">here</a>
+and <a href="https://www.nowsecure.com/blog/2015/11/23/ios-instrumentation-without-jailbreak/">here</a>.</p>
+
+<p>There’s a lot of ground to cover here, but the summary is basically:</p>
+
+<p>6.0.0:</p>
+
+<ul>
+  <li>core: add support for OS X El Capitan</li>
+  <li>core: add support for iOS 9</li>
+  <li>core: fix launchd plist permissions in Cydia package</li>
+  <li>core: disable our dynamic linker on iOS for now</li>
+  <li>core: add new JavaScript runtime based on JavaScriptCore, as we cannot
+      use V8 on iOS 9 with the current jailbreak</li>
+  <li>core: add brand new system session when attaching to <em>pid=0</em></li>
+  <li>core: improve arm hooking, including support for early TBZ/TBNZ/IT/B.cond,
+      and avoid relocating instructions that a later instruction loops back to</li>
+  <li>core: fix relocation of LDR.W instructions on arm64</li>
+  <li>core: abort when we’re stuck in an exception loop</li>
+  <li>core: fix <em>AutoIgnorer</em>-related deadlocks</li>
+  <li>core: drop our <em>.</em> prefix so temporary files are easier to discover</li>
+  <li>python: add support for running without ES6 support</li>
+  <li>python: tweak setup.py to allow offline installation</li>
+  <li>python: lock the prompt-toolkit version to 0.38 for now</li>
+  <li>frida-repl: fix display of raw buffers as returned by <em>Memory.readByteArray()</em></li>
+  <li>frida-repl: fix crash in completion on error</li>
+  <li>node: add support for DeviceManager’s <em>added</em> and <em>removed</em> signals</li>
+  <li>node: add example showing how to watch available devices</li>
+  <li>node: use prebuild instead of node-pre-gyp</li>
+  <li>node: Babelify the source code read by <em>frida.load()</em></li>
+  <li>node: remove <em>frida.load()</em> as it’s now in the frida-load module</li>
+</ul>
+
+<p>6.0.1:</p>
+
+<ul>
+  <li>python: stop providing 3.4 binaries and move to 3.5 instead</li>
+  <li>node: fix Linux linking issue where we fail to pick up our libffi</li>
+  <li>node: also produce prebuild for Node.js LTS</li>
+</ul>
+
+<p>6.0.2:</p>
+
+<ul>
+  <li>core: provide FridaGadget.dylib for instrumenting iOS apps without jailbreak</li>
+  <li>core: add support for the iOS Simulator</li>
+  <li>core: improve <em>MemoryAccessMonitor</em> to allow monitoring any combination of
+      R, W or X operations on a page</li>
+  <li>python: fix UTF-8 fields being accidentally exposed as <em>str</em> on Python 2.x</li>
+</ul>
+
+<p>6.0.3:</p>
+
+<ul>
+  <li>core: fix <em>spawn()</em> on OS X</li>
+</ul>
+
+<p>6.0.4:</p>
+
+<ul>
+  <li>core: add partial support for using the gadget standalone</li>
+  <li>CLI tools: fix crash when the stdout encoding cannot represent all characters</li>
+  <li>frida-trace: always treat handler scripts as UTF-8</li>
+</ul>
+
+<p>6.0.5:</p>
+
+<ul>
+  <li>core: add logical shift right and left operations to NativePointer</li>
+  <li>core: improve Interceptor to support attaching to a replaced function</li>
+  <li>core: add support for hooking tiny functions on 32-bit ARM</li>
+  <li>core: emulate <em>{Get/Set}LastErrror</em> and TLS key access on Windows, allowing
+      us to hook more low-level APIs</li>
+</ul>
+
+<p>6.0.6:</p>
+
+<ul>
+  <li>core: fix launchd / Jetsam issue on iOS 9</li>
+  <li>core: fix iOS 9 code signing issue</li>
+  <li>core: update security attributes on named pipe to allow us to inject into
+      more Windows apps</li>
+</ul>
+
+<p>6.0.7:</p>
+
+<ul>
+  <li>core: add support for injecting into processes on linux-arm</li>
+  <li>core: fix crashes related to the DebugSymbol API on Mac and iOS</li>
+  <li>frida-trace: improve manpage parser</li>
+</ul>
+
+<p>6.0.8:</p>
+
+<ul>
+  <li>core: fix Linux compatibility issue caused by failing to link libstdc++
+      statically</li>
+</ul>
+
+<p>6.0.9:</p>
+
+<ul>
+  <li>core: add support for running frida-gadget standalone</li>
+  <li>core: add a temporary workaround for Windows compatibility regression</li>
+  <li>core: port the Fruity backend to Linux, allowing direct access to connected
+      iOS devices</li>
+  <li>core: expose the InvocationContext <em>context</em> read-write in the JavaScriptCore
+      runtime also</li>
+  <li>core: fix issue with InvocationContext’s CpuContext getting GCed prematurely</li>
+</ul>
+
+<p>6.0.10:</p>
+
+<p>Re-release of 6.0.9 with a Windows build regression fix.</p>
+
+<p>6.0.11:</p>
+
+<ul>
+  <li>core: prevent stale HostSession objects in case of network errors</li>
+  <li>CLI tools: assume UTF-8 when the stdout encoding is unknown</li>
+  <li>node: fix double free caused by using the wrong Nan API</li>
+</ul>
+
+<p>6.0.12:</p>
+
+<ul>
+  <li>core: update security attributes on named pipe on Windows</li>
+  <li>core: add CreateProcessW flags to prevent IFEO loop on Windows</li>
+  <li>core: fix hooking of recursive functions on arm and arm64</li>
+  <li>python: fix Python 3 line endings regression</li>
+  <li>node: update prebuild dependency</li>
+</ul>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 5.0 Released</title>
+        <link>http://www.frida.re/news/2015/09/17/frida-5-0-released/</link>
+        <pubDate>Thu, 17 Sep 2015 11:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/09/17/frida-5-0-released</guid>
+        <description><![CDATA[ <p>Wow, another major release! We decided to change the Device API to give you
+persistent IDs so you can easily tell different devices apart as they’re
+hotplugged.</p>
+
+<p>But that’s just the beginning of it, we’re also bringing a ton of other
+improvements this time:</p>
+
+<p>5.0.0:</p>
+
+<ul>
+  <li>core: change Device.id to represent individual devices across reconnects</li>
+  <li>core: add new Droidy backend for interfacing with connected Android devices</li>
+  <li>core: adjust confusing iPhone 5+ device name on Darwin</li>
+  <li>core: normalize the fallback iOS device name for consistency with Android</li>
+  <li>core: upgrade V8 to 4.5.103.30</li>
+  <li>objc: include both class and instance methods in <em>$methods</em> and <em>$ownMethods</em></li>
+  <li>python: add -D switch for specifying the device id to connect to</li>
+  <li>python: add frida-ls-devices CLI tool for listing devices</li>
+  <li>python: update to the new Device.id API</li>
+  <li>python: add <em>get_local_device()</em> and improve API consistency with frida-node</li>
+  <li>node: update to the new Device.id API</li>
+  <li>node: improve the top-level facade API</li>
+  <li>qml: update to the new Device.id API</li>
+  <li>clr: update to the new Device.id API</li>
+  <li>frida-ps: improve the output formatting</li>
+</ul>
+
+<p>5.0.1:</p>
+
+<ul>
+  <li>core: add support for source maps</li>
+  <li>node: add frida.load() for turning a CommonJS module into a script</li>
+  <li>node: upgrade Nan</li>
+</ul>
+
+<p>5.0.2:</p>
+
+<ul>
+  <li>core: add <em>console.warn()</em> and <em>console.error()</em></li>
+  <li>core: add <em>Module.enumerateImports()</em> and implement on Darwin, Linux,
+      and Windows</li>
+  <li>core: allow <em>null</em> module name when calling <em>Module.findExportByName()</em></li>
+  <li>core: move <em>Darwin.Module</em> and <em>Darwin.Mapper</em> from frida-core to frida-gum,
+      allowing easy Mach-O parsing and out-of-process dynamic linking</li>
+  <li>core: better handling of temporary files</li>
+  <li>frida-trace: add support for conveniently tracing imported functions</li>
+  <li>frida-trace: blacklist dyld_stub_binder from being traced</li>
+  <li>python: avoid logging getting overwritten by the status message changing</li>
+</ul>
+
+<p>5.0.3:</p>
+
+<ul>
+  <li>core: improve arm64 hooking, including support for hooking short functions</li>
+</ul>
+
+<p>5.0.4:</p>
+
+<ul>
+  <li>core: improve arm64 hooking, also taking care to avoid relocating instructions
+      that other instructions depend on, including the next instruction after
+      a BL/BLR/SVC instruction</li>
+  <li>core: port <em>Arm64Writer</em> and <em>Arm64Relocator</em> to Capstone</li>
+</ul>
+
+<p>5.0.5:</p>
+
+<ul>
+  <li>core: fix crash on teardown by using new API provided by our GLib patch</li>
+  <li>core: fix module name resolving on Linux</li>
+  <li>core: improve ELF handling to also consider <em>ET_EXEC</em> images as valid modules</li>
+  <li>core: improve arm64 hooking</li>
+  <li>core: port <em>{Arm,Thumb}Writer</em> and <em>{Arm,Thumb}Relocator</em> to Capstone</li>
+  <li>python: fix tests on OS X 10.11</li>
+  <li>node: fix tests on OS X 10.11</li>
+</ul>
+
+<p>5.0.6:</p>
+
+<ul>
+  <li>core: turn NativeFunction invocation crash into a JS exception when possible</li>
+  <li>core: add <em>Process.setExceptionHandler()</em> for handling native exceptions from
+      JS</li>
+  <li>core: install a default exception handler that emits error messages</li>
+  <li>core: prevent apps from overriding our exception handler if we install ours
+      early in the process life-time</li>
+  <li>core: gracefully handle it if we cannot replace native functions</li>
+  <li>core: allow RPC exports to return ArrayBuffer values</li>
+  <li>python: add support for rpc methods returning ArrayBuffer objects</li>
+  <li>node: add support for rpc methods returning ArrayBuffer objects</li>
+</ul>
+
+<p>5.0.7:</p>
+
+<ul>
+  <li>core: don’t install a default exception handler for now</li>
+</ul>
+
+<p>5.0.8:</p>
+
+<p>Re-release of 5.0.7 due to build machine issues.</p>
+
+<p>5.0.9:</p>
+
+<ul>
+  <li>python: update setup.py to match new build server configuration</li>
+</ul>
+
+<p>5.0.10:</p>
+
+<ul>
+  <li>core: fix instrumentation of arm64 functions with early usage of IP registers</li>
+</ul>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 4.5 Released</title>
+        <link>http://www.frida.re/news/2015/09/10/frida-4-5-released/</link>
+        <pubDate>Thu, 10 Sep 2015 11:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/09/10/frida-4-5-released</guid>
+        <description><![CDATA[ <p>Time for another packed release. This time we’re bringing a brand new spawn
+gating API that lets you catch processes spawned by the system, and tons of
+Android improvements and improvements all over the place.</p>
+
+<p>So without further ado, the list of changes:</p>
+
+<p>4.5.0:</p>
+
+<ul>
+  <li>core: add <em>Process.pageSize</em> constant</li>
+  <li>core: let <em>Memory.alloc()</em> allocate raw pages when size &gt;= page size</li>
+  <li>core: fix NativeFunction’s handling of small return types</li>
+  <li>core: fix PC alignment when rewriting BLX instructions</li>
+  <li>core: add spawn gating API</li>
+  <li>core: implement <em>get_frontmost_application()</em> on Android</li>
+  <li>core: implement <em>enumerate_applications()</em> on Android</li>
+  <li>core: add support for spawning Android apps</li>
+  <li>core: add support for injecting into arm64 processes on Android</li>
+  <li>core: add support for Android M</li>
+  <li>core: patch the kernel’s live SELinux policy</li>
+  <li>core: integrate with SuperSU to work around restrictions on Samsung kernels</li>
+  <li>core: work around broken sigsetjmp on Android, and many other Android fixes</li>
+  <li>core: fix crash when enumerating modules on Linux</li>
+  <li>core: optimize exports enumeration for remote processes on Darwin</li>
+  <li>dalvik: port to ART and deprecate <em>Dalvik</em> name, now known as <em>Java</em></li>
+  <li>java: add <em>Java.openClassFile()</em> to allow loading classes at runtime</li>
+  <li>java: fixes for array conversions and field setters</li>
+  <li>python: add support for the new spawn gating API</li>
+  <li>python: allow script source and name to be unicode on Python 2.x also</li>
+  <li>python: fix error-propagation in Python 3.x</li>
+  <li>python: fix the Linux download URL computation</li>
+  <li>node: add support for the new spawn gating API</li>
+  <li>node: port to Nan 2.x</li>
+</ul>
+
+<p>4.5.1:</p>
+
+<ul>
+  <li>core: fix <code class="highlighter-rouge">ensure_host_session()</code> error propagation</li>
+</ul>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 4.4 Released</title>
+        <link>http://www.frida.re/news/2015/07/31/frida-4-4-released/</link>
+        <pubDate>Fri, 31 Jul 2015 11:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/07/31/frida-4-4-released</guid>
+        <description><![CDATA[ <p>With 4.4 out the door, we can now offer you a brand new <a href="/docs/javascript-api/#rpc">RPC API</a>
+that makes it super-easy to communicate with your scripts and have them expose
+services to your application. We also got some amazing contributions from
+<a href="https://github.com/SomeoneWeird">Adam Brady</a>, who just ported frida-node to
+<a href="https://github.com/nodejs/nan">Nan</a>, making it easy to build it for multiple
+versions of Node.js.</p>
+
+<p>So to summarize this release:</p>
+
+<ul>
+  <li>core: add new RPC API</li>
+  <li>python: add support for calling RPC exports</li>
+  <li>node: add support for calling RPC exports</li>
+  <li>node: allow posted message value to be anything serializable to JSON</li>
+  <li>node: port to Nan</li>
+</ul>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 4.3 Released</title>
+        <link>http://www.frida.re/news/2015/07/15/frida-4-3-released/</link>
+        <pubDate>Wed, 15 Jul 2015 11:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/07/15/frida-4-3-released</guid>
+        <description><![CDATA[ <p>It’s release o’clock, and this time we have a slew of improvements all over
+the place. In brief:</p>
+
+<p>4.3.0:</p>
+
+<ul>
+  <li>core: add support for getting details about the frontmost application,
+      initially only for iOS</li>
+  <li>python: add <em>Device.get_frontmost_application()</em></li>
+  <li>node: add <em>Device.getFrontmostApplication()</em></li>
+</ul>
+
+<p>4.3.1:</p>
+
+<ul>
+  <li>core: add support for relocating PC-relative <em>CBZ</em> on arm64</li>
+  <li>frida-repl: fix crash and loading of script on Py3k</li>
+</ul>
+
+<p>4.3.2:</p>
+
+<ul>
+  <li>core: add support for launching an iOS app with a URL</li>
+  <li>dalvik: fix bug in field caching</li>
+  <li>frida-trace: color and indent events based on thread ID and depth</li>
+  <li>frida-ps: fix application listing on Py3k</li>
+</ul>
+
+<p>4.3.3:</p>
+
+<ul>
+  <li>core: re-enable the Darwin mapper after accidentally disabling it</li>
+</ul>
+
+<p>4.3.4:</p>
+
+<ul>
+  <li>core: gracefully handle attempts to replace functions</li>
+  <li>core: throw an exception when Interceptor’s <em>attach()</em> and <em>replace()</em> fail</li>
+  <li>core: fix clean-up of agent sessions</li>
+  <li>core: fix assertion logging and log to CFLog on Darwin</li>
+  <li>dalvik: add <em>Dalvik.synchronized()</em>, <em>Dalvik.scheduleOnMainThread()</em> and
+        <em>Dalvik.isMainThread()</em></li>
+  <li>dalvik: port <em>Dalvik.androidVersion</em> and <em>Dalvik.choose()</em> to Android 4.2.2</li>
+  <li>python: fix the PyPI download URL for windows-i386</li>
+  <li>frida-trace: handle <em>attach()</em> failures gracefully</li>
+</ul>
+
+<p>4.3.5:</p>
+
+<ul>
+  <li>frida-server: better resource tracking</li>
+</ul>
+
+<p>4.3.6:</p>
+
+<ul>
+  <li>core: fix for arm64 function hooking</li>
+  <li>dalvik: fix for <em>Dalvik.enumerateLoadedClasses()</em></li>
+</ul>
+
+<p>4.3.7:</p>
+
+<ul>
+  <li>objc: add <em>ObjC.Block</em> for implementing and interacting with blocks</li>
+</ul>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 4.2 Released</title>
+        <link>http://www.frida.re/news/2015/06/18/frida-4-2-released/</link>
+        <pubDate>Thu, 18 Jun 2015 11:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/06/18/frida-4-2-released</guid>
+        <description><![CDATA[ <p>The Frida co-conspirators have been cracking away on several fronts, so much
+lately that I figured it was worth jotting this down to get the word out.</p>
+
+<p>In Dalvik land, <a href="https://github.com/marc1006">@marc1006</a> contributed a really
+neat new feature – the ability to do object carving, essentially scanning the
+heap for objects of a certain type. Check this out:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kr">const</span> <span class="nx">strings</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="nx">Dalvik</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">'java.lang.String'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="na">onMatch</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">str</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">strings</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">str</span><span class="p">);</span>
+  <span class="p">},</span>
+  <span class="na">onComplete</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Found '</span> <span class="o">+</span> <span class="nx">strings</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s1">' strings!'</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">});</span></code></pre></figure>
+
+<p>Meanwhile, <a href="https://github.com/Tyilo">@Tyilo</a> has been rocking out adding the
+same feature for Objective-C:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kr">const</span> <span class="nx">strings</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="nx">ObjC</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="nx">ObjC</span><span class="p">.</span><span class="nx">classes</span><span class="p">.</span><span class="nx">NSString</span><span class="p">,</span> <span class="p">{</span>
+  <span class="na">onMatch</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">str</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">strings</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">str</span><span class="p">);</span>
+  <span class="p">},</span>
+  <span class="na">onComplete</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Found '</span> <span class="o">+</span> <span class="nx">strings</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s1">' strings!'</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">});</span></code></pre></figure>
+
+<p>In other mobile news, <a href="https://github.com/trufae">@pancake</a> added support for
+enumerating applications on Firefox OS. Sweet!</p>
+
+<p>While all of this was going on, <a href="https://github.com/s1341">@s1341</a> has been
+hard at work stabilizing the QNX port, and it’s reportedly working really well
+now.</p>
+
+<p>On my end I have been applying Frida to interesting challenges at
+<a href="https://www.nowsecure.com/">NowSecure</a>, and ran into quite a few bugs and
+limitations in the Objective-C integration. There’s now support for overriding
+methods that deal with struct types passed by value, e.g. <code class="highlighter-rouge">-[UIView drawRect:]</code>,
+which means <code class="highlighter-rouge">NativeFunction</code> and <code class="highlighter-rouge">NativeCallback</code> also support these; so for
+declaring a struct simply start an array with the fields’ types specified
+sequentially. You can even nest them. So for the <code class="highlighter-rouge">- drawRect:</code> case where a
+struct is passed by value, and that struct is made out of two other structs,
+you’d declare it like this:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kr">const</span> <span class="nx">f</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">NativeFunction</span><span class="p">(</span><span class="nx">ptr</span><span class="p">(</span><span class="s1">'0x1234'</span><span class="p">),</span> <span class="s1">'void'</span><span class="p">,</span>
+    <span class="p">[[[</span><span class="s1">'double'</span><span class="p">,</span> <span class="s1">'double'</span><span class="p">],</span> <span class="p">[</span><span class="s1">'double'</span><span class="p">,</span> <span class="s1">'double'</span><span class="p">]]]);</span></code></pre></figure>
+
+<p>Another thing worth mentioning is that a long-standing issue especially visible
+when instrumenting 32-bit iOS apps, but affecting all platforms, has finally
+<a href="https://github.com/frida/frida-gum/commit/2f02e911edc4a5df80051fdaed72e0281ea751e7">been fixed</a>.</p>
+
+<p>So let’s run quickly through all the changes:</p>
+
+<p>4.1.8:</p>
+
+<ul>
+  <li>core: add support for enumerating applications on Firefox OS</li>
+  <li>core: add <em>NativePointer.toMatchPattern()</em> for use with <em>Memory.scan()</em></li>
+  <li>core: fix QNX injector race condition</li>
+  <li>objc: massively improved handling of types</li>
+  <li>objc: fix implicit conversion from JS string to NSString</li>
+  <li>objc: fix crash during registration of second proxy or unnamed class</li>
+  <li>objc: new <em>ObjC.Object</em> properties: <em>$className</em> and <em>$super</em></li>
+  <li>dalvik: add <em>Dalvik.choose()</em> for object carving</li>
+</ul>
+
+<p>4.1.9:</p>
+
+<ul>
+  <li>core: <em>NativeFunction</em> and <em>NativeCallback</em> now support functions passing
+      struct types by value</li>
+  <li>core: fix accidental case-sensitivity in <em>Process.getModuleByName()</em></li>
+  <li>dalvik: new object property: <em>$className</em></li>
+</ul>
+
+<p>4.2.0:</p>
+
+<ul>
+  <li>core: add <em>this.returnAddress</em> to <em>Interceptor</em>’s <em>onEnter</em> and <em>onLeave</em>
+      callbacks</li>
+  <li>objc: add <em>ObjC.choose()</em> for object carving</li>
+</ul>
+
+<p>4.2.1:</p>
+
+<ul>
+  <li>core: fix exports enumeration of stripped libraries on QNX</li>
+  <li>objc: new <em>ObjC.Object</em> property: <em>$kind</em>, a string that is either <em>instance</em>,
+      <em>class</em> or <em>meta-class</em></li>
+  <li>objc: fix the <em>$class</em> property so it also does the right thing for classes</li>
+  <li>objc: fix crash when looking up inexistent method</li>
+  <li>python: ensure graceful teardown of the reactor thread</li>
+  <li>frida-discover: fix regression</li>
+  <li>frida-repl: fix hang when target crashes during evaluation of expression</li>
+</ul>
+
+<p>4.2.2:</p>
+
+<ul>
+  <li>core: fix exception handling weirdness; very visible on ios-arm</li>
+  <li>core: QNX stability improvements</li>
+  <li>objc: add <em>ObjC.api</em> for direct access to the Objective-C runtime’s API</li>
+  <li>objc: new <em>ObjC.Object</em> properties: <em>equals</em>, <em>$superClass</em> and <em>$methods</em></li>
+  <li>objc: fix iOS 7 compatibility</li>
+  <li>objc: fix <em>toJSON()</em> of <em>ObjC.classes</em> and <em>ObjC.protocols</em></li>
+  <li>dalvik: fix handling of <em>java.lang.CharSequence</em></li>
+  <li>frida-repl: add <em>%time</em> command for easy profiling</li>
+</ul>
+
+<p>4.2.3:</p>
+
+<ul>
+  <li>core: fix crash when handling exceptions without a message object</li>
+  <li>core: fix the life-time of CpuContext JS wrappers</li>
+  <li>core: expose the file mapping info to <em>Process.enumerateRanges()</em></li>
+  <li>core: make it possible to coalesce neighboring ranges when enumerating</li>
+  <li>core: add convenience API for looking up modules and ranges</li>
+  <li>core: make the QNX mprotect read in a loop instead of just the once</li>
+  <li>dalvik: avoid crashing the process if a type conversion fails</li>
+  <li>dalvik: allow <em>null</em> as call parameter</li>
+  <li>objc: fix conversion of structs with simple field types</li>
+  <li>objc: speed up implicit string conversion by caching wrapper object</li>
+</ul>
+
+<p>4.2.4:</p>
+
+<ul>
+  <li>objc: fix crash when interacting with not-yet-realized classes</li>
+</ul>
+
+<p>4.2.5:</p>
+
+<ul>
+  <li>core: optimize Interceptor callback logic and make it twice as fast when
+      <em>onEnter</em> and <em>onLeave</em> aren’t both specified</li>
+  <li>core: fix return-address seen by the invocation-context on arm64</li>
+  <li>core: add a fuzzy backtracer for arm64</li>
+</ul>
+
+<p>4.2.6:</p>
+
+<ul>
+  <li>core: fix access to arguments 4 through 7 on arm64</li>
+  <li>core: add <em>Memory.readFloat()</em>, <em>Memory.writeFloat()</em>, <em>Memory.readDouble()</em>
+      and <em>Memory.writeDouble()</em></li>
+  <li>dalvik: improved type checking</li>
+  <li>qnx: implement side-stack for calling <em>onEnter()</em>/<em>onLeave()</em> with the
+     stack-hungry V8 engine</li>
+</ul>
+
+<p>4.2.7:</p>
+
+<ul>
+  <li>core: Darwin backend bug-fixes</li>
+  <li>core: optimize handling of the <em>send()</em> data payload</li>
+  <li>core: add APIs for interacting with the iOS kernel through <em>task_for_pid(0)</em>,
+      only available in the <em>attach(pid=0)</em> session</li>
+  <li>core: side-stack support for replaced functions on QNX</li>
+  <li>objc: add <em>getOwnPropertyNames()</em> to ObjC.classes</li>
+  <li>frida-repl: improved completion</li>
+</ul>
+
+<p>4.2.8:</p>
+
+<ul>
+  <li>python: fix Py3k regression</li>
+</ul>
+
+<p>4.2.9:</p>
+
+<ul>
+  <li>objc: add <em>$ownMethods</em> to <em>ObjC.Object</em></li>
+  <li>dalvik: add support for primitive arrays and object arrays</li>
+  <li>python: improve compatibility between Python 2 and 3</li>
+  <li>frida-repl: better magic commands</li>
+</ul>
+
+<p>4.2.10:</p>
+
+<ul>
+  <li>core: fix Interceptor vector register clobbering issue on arm64</li>
+  <li>core: improve temporary directory handling on Android</li>
+</ul>
+
+<p>4.2.11:</p>
+
+<ul>
+  <li>dalvik: add support for accessing instance and static fields</li>
+  <li>dalvik: type conversion improvements</li>
+  <li>python: resolve python runtime lazily on Mac to allow our binaries to work
+        with multiple Python distributions</li>
+  <li>python: pip support</li>
+</ul>
+
+<p>4.2.12:</p>
+
+<ul>
+  <li>python: fix Py3k regressions</li>
+</ul>
+
+<p>That’s all for now. Please help spread the word by sharing this post across
+the inter-webs. We’re still quite small as an open source project, so
+word-of-mouth marketing means a lot to us.</p>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 4.1 Released</title>
+        <link>http://www.frida.re/news/2015/06/09/frida-4-1-released/</link>
+        <pubDate>Tue, 09 Jun 2015 01:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/06/09/frida-4-1-released</guid>
+        <description><![CDATA[ <p>It’s release o’clock, and this time we’re taking the iOS support to the next
+level while also bringing some solid quality improvements. I’m also really
+excited to announce that I’ve recently joined <a href="https://www.nowsecure.com/">NowSecure</a>,
+and the awesomeness of this release is no conincidence.</p>
+
+<p>Let’s start with a brand new iOS feature. It’s now possible to list installed
+apps, which <em>frida-ps</em> can do for you:</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="gp">$ </span>frida-ps -U -a
+  PID NAME        IDENTIFIER
+10582 Facebook    com.facebook.Facebook
+11066 IRCCloud    com.irccloud.IRCCloud
+  451 Mail        com.apple.mobilemail
+10339 Mailbox     com.orchestra.v2
+ 6866 Messages    com.apple.MobileSMS
+10626 Messenger   com.facebook.Messenger
+11043 Settings    com.apple.Preferences
+10542 Skype       com.skype.skype
+11218 Slack       com.tinyspeck.chatlyio
+11052 Snapchat    com.toyopagroup.picaboo
+<span class="err">$</span></code></pre></figure>
+
+<p>Add the <code class="highlighter-rouge">-i</code> switch and it will also include all installed applications, and
+not just those of them that are currently running.</p>
+
+<p>This is also available from your language binding of choice, e.g. from Python:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">frida</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">iphone</span> <span class="o">=</span> <span class="n">frida</span><span class="o">.</span><span class="n">get_usb_device</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">repr</span><span class="p">,</span> <span class="n">iphone</span><span class="o">.</span><span class="n">enumerate_applications</span><span class="p">())))</span>
+<span class="n">Application</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="s">"com.google.ios.youtube"</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">"YouTube"</span><span class="p">)</span>
+<span class="n">Application</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="s">"com.toyopagroup.picaboo"</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">"Snapchat"</span><span class="p">)</span>
+<span class="n">Application</span><span class="p">(</span><span class="n">identifier</span><span class="o">=</span><span class="s">"com.skype.skype"</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">"Skype"</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="mi">10542</span><span class="p">)</span>
+<span class="err">…</span>
+<span class="o">&gt;&gt;&gt;</span></code></pre></figure>
+
+<p>That’s cool, but wouldn’t you like to do early instrumentation of those apps?
+Now you can do that too, by just asking us to spawn an app identifier:</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="gp">$ </span>frida-trace -U -f com.toyopagroup.picaboo -I <span class="s2">"libcommonCrypto*"</span></code></pre></figure>
+
+<p>Or at the API level:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">frida</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">iphone</span> <span class="o">=</span> <span class="n">frida</span><span class="o">.</span><span class="n">get_usb_device</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">pid</span> <span class="o">=</span> <span class="n">iphone</span><span class="o">.</span><span class="n">spawn</span><span class="p">([</span><span class="s">"com.toyopagroup.picaboo"</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">snapchat</span> <span class="o">=</span> <span class="n">iphone</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="err">…</span><span class="nb">apply</span> <span class="n">instrumentation</span><span class="err">…</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">iphone</span><span class="o">.</span><span class="n">resume</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span></code></pre></figure>
+
+<p>Note that we piggy-back on <em>Cydia Substrate</em> for the early launch part in order
+to maximize interoperability; after all it’s not too good if multiple frameworks
+all inject code into <em>launchd</em> and risk stepping on each others’ toes. This
+dependency is however a soft one, so we’ll throw an exception if Substrate isn’t
+installed when trying to call <code class="highlighter-rouge">spawn()</code> with an app identifier.</p>
+
+<p>So, early instrumentation of iOS apps is pretty cool. But, those applications
+are typically consuming tons of Objective-C APIs, and if we want to instrument
+them we often find ourselves having to create new Objective-C classes in order
+to create delegates to insert between the application and the API. Wouldn’t it
+be nice if such Objective-C classes could be created in pure JavaScript? Now
+they can:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kr">const</span> <span class="nx">MyConnectionDelegateProxy</span> <span class="o">=</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">registerClass</span><span class="p">({</span>
+  <span class="na">name</span><span class="p">:</span> <span class="s1">'MyConnectionDelegateProxy'</span><span class="p">,</span>
+  <span class="na">super</span><span class="p">:</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">classes</span><span class="p">.</span><span class="nx">NSObject</span><span class="p">,</span>
+  <span class="na">protocols</span><span class="p">:</span> <span class="p">[</span><span class="nx">ObjC</span><span class="p">.</span><span class="nx">protocols</span><span class="p">.</span><span class="nx">NSURLConnectionDataDelegate</span><span class="p">],</span>
+  <span class="na">methods</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s1">'- init'</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="kr">const</span> <span class="nx">self</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="kr">super</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">self</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">ObjC</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">self</span><span class="p">,</span> <span class="p">{</span>
+          <span class="na">foo</span><span class="p">:</span> <span class="mi">1234</span>
+        <span class="p">});</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="nx">self</span><span class="p">;</span>
+    <span class="p">},</span>
+    <span class="s1">'- dealloc'</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="nx">ObjC</span><span class="p">.</span><span class="nx">unbind</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">self</span><span class="p">);</span>
+      <span class="k">this</span><span class="p">.</span><span class="kr">super</span><span class="p">.</span><span class="nx">dealloc</span><span class="p">();</span>
+    <span class="p">},</span>
+    <span class="s1">'- connection:didReceiveResponse:'</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">conn</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="p">{</span>
+      <span class="cm">/* this.data.foo === 1234 */</span>
+    <span class="p">},</span>
+    <span class="cm">/*
+     * But those previous methods are declared assuming that
+     * either the super-class or a protocol we conform to has
+     * the same method so we can grab its type information.
+     * However, if that's not the case, you would write it
+     * like this:
+     */</span>
+    <span class="s1">'- connection:didReceiveResponse:'</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nl">retType</span><span class="p">:</span> <span class="s1">'void'</span><span class="p">,</span>
+      <span class="na">argTypes</span><span class="p">:</span> <span class="p">[</span><span class="s1">'object'</span><span class="p">,</span> <span class="s1">'object'</span><span class="p">],</span>
+      <span class="na">implementation</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">conn</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="p">{</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="cm">/* Or grab it from an existing class: */</span>
+    <span class="s1">'- connection:didReceiveResponse:'</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nl">types</span><span class="p">:</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">classes</span>
+          <span class="p">.</span><span class="nx">Foo</span><span class="p">[</span><span class="s1">'- connection:didReceiveResponse:'</span><span class="p">].</span><span class="nx">types</span><span class="p">,</span>
+      <span class="na">implementation</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">conn</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="p">{</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="cm">/* Or from an existing protocol: */</span>
+    <span class="s1">'- connection:didReceiveResponse:'</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nl">types</span><span class="p">:</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">protocols</span><span class="p">.</span><span class="nx">NSURLConnectionDataDelegate</span>
+          <span class="p">.</span><span class="nx">methods</span><span class="p">[</span><span class="s1">'- connection:didReceiveResponse:'</span><span class="p">].</span><span class="nx">types</span><span class="p">,</span>
+      <span class="na">implementation</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">conn</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="p">{</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="cm">/* Or write the signature by hand if you really want to: */</span>
+    <span class="s1">'- connection:didReceiveResponse:'</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nl">types</span><span class="p">:</span> <span class="s1">'v32@0:8@16@24'</span><span class="p">,</span>
+      <span class="na">implementation</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">conn</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="p">{</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+
+<span class="kr">const</span> <span class="nx">proxy</span> <span class="o">=</span> <span class="nx">MyConnectionDelegateProxy</span><span class="p">.</span><span class="nx">alloc</span><span class="p">().</span><span class="nx">init</span><span class="p">();</span>
+<span class="cm">/* use `proxy`, and later: */</span>
+<span class="nx">proxy</span><span class="p">.</span><span class="nx">release</span><span class="p">();</span></code></pre></figure>
+
+<p>Though most of the time you’d like to build a proxy object where you
+pass on everything and only do some logging for the few methods you
+actually care about. Check this out:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kr">const</span> <span class="nx">MyConnectionDelegateProxy</span> <span class="o">=</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">registerProxy</span><span class="p">({</span>
+  <span class="na">protocols</span><span class="p">:</span> <span class="p">[</span><span class="nx">ObjC</span><span class="p">.</span><span class="nx">protocols</span><span class="p">.</span><span class="nx">NSURLConnectionDataDelegate</span><span class="p">],</span>
+  <span class="na">methods</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s1">'- connection:didReceiveResponse:'</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">conn</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="p">{</span>
+      <span class="cm">/* fancy logging code here */</span>
+      <span class="cm">/* this.data.foo === 1234 */</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">target</span>
+          <span class="p">.</span><span class="nx">connection_didReceiveResponse_</span><span class="p">(</span><span class="nx">conn</span><span class="p">,</span> <span class="nx">resp</span><span class="p">);</span>
+    <span class="p">},</span>
+    <span class="s1">'- connection:didReceiveData:'</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">conn</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+      <span class="cm">/* other logging code here */</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">target</span>
+          <span class="p">.</span><span class="nx">connection_didReceiveData_</span><span class="p">(</span><span class="nx">conn</span><span class="p">,</span> <span class="nx">data</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="na">events</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">forward</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'*** forwarding: '</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+
+<span class="kr">const</span> <span class="nx">method</span> <span class="o">=</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">classes</span><span class="p">.</span><span class="nx">NSURLConnection</span><span class="p">[</span>
+    <span class="s1">'- initWithRequest:delegate:startImmediately:'</span><span class="p">];</span>
+<span class="nx">Interceptor</span><span class="p">.</span><span class="nx">attach</span><span class="p">(</span><span class="nx">method</span><span class="p">.</span><span class="nx">implementation</span><span class="p">,</span> <span class="p">{</span>
+  <span class="na">onEnter</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MyConnectionDelegateProxy</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="p">{</span>
+      <span class="na">foo</span><span class="p">:</span> <span class="mi">1234</span>
+    <span class="p">});</span>
+  <span class="p">}</span>
+<span class="p">});</span></code></pre></figure>
+
+<p>So that’s Objective-C. The Dalvik integration also got some sweet new API for
+enumerating loaded classes thanks to <a href="https://github.com/marc1006">@marc1006</a>,
+who also fixed our handling of static methods and being able to return booleans
+from overriden implementations.</p>
+
+<p>We also got lots of awesome improvements from <a href="https://github.com/Tyilo">@Tyilo</a>
+who helped improve the ObjC integration, beat the REPL into better shape, added
+APIs for enumerating malloc ranges, and added some convenience APIs to
+<em>NativePointer</em>.</p>
+
+<p>While all of this was going on, <a href="https://github.com/s1341">@s1341</a> has been
+hard at work doing an amazing job porting Frida to QNX, which is now really
+close to working like a charm.</p>
+
+<p>Let’s run through the remaining changes:</p>
+
+<p>4.0.1:</p>
+
+<ul>
+  <li>objc: support for more types</li>
+  <li>frida-trace: fix ObjC tracing regression</li>
+</ul>
+
+<p>4.0.2:</p>
+
+<ul>
+  <li>frida-node: fix encoding of the <em>pixels</em> property</li>
+</ul>
+
+<p>4.0.3:</p>
+
+<ul>
+  <li>frida-repl: fix Windows regression</li>
+</ul>
+
+<p>4.0.5:</p>
+
+<ul>
+  <li>objc: support for more types and better type checking</li>
+  <li>objc: arm64 now working properly</li>
+  <li>frida-repl: allow variables to be created</li>
+</ul>
+
+<p>4.0.6:</p>
+
+<ul>
+  <li>platform: support passing a plain array of data to <em>send()</em></li>
+  <li>arm: support for relocating <em>cbz</em>/<em>cbnz</em> instructions</li>
+</ul>
+
+<p>4.1.0:</p>
+
+<ul>
+  <li>platform: fix spawning of child processes that write to stdout</li>
+  <li>platform: fix NativeCallback’s handling of <em>bool</em>/<em>int8</em>/<em>uint8</em> return
+values (this was preventing Dalvik method overrides from being able to
+return <em>false</em>).</li>
+  <li>platform: allow <em>Memory.readByteArray()</em> with length &lt; 1</li>
+  <li>arm: support for relocating the <em>ldrpc t2</em> instruction</li>
+  <li>arm: improved redirect resolver</li>
+  <li>arm64: fix relocation of the <em>adrp</em> instruction</li>
+  <li>arm64: support for relocating PC-relative <em>ldr</em> instruction</li>
+  <li>dalvik: add <em>Dalvik.enumerateLoadedClasses()</em></li>
+  <li>dalvik: fix handling of static methods</li>
+  <li>python: fix <em>console.log()</em> on Windows</li>
+  <li>frida-repl: bugfixes and improvements</li>
+  <li>frida-trace: glob support for tracing ObjC methods</li>
+</ul>
+
+<p>4.1.1:</p>
+
+<ul>
+  <li>platform: add missing pid field in <em>enumerate_applications()</em></li>
+</ul>
+
+<p>4.1.2:</p>
+
+<ul>
+  <li>objc: class and proxy creation APIs</li>
+  <li>objc: new <em>ObjC.protocols</em> API for enumerating protocols</li>
+</ul>
+
+<p>4.1.3:</p>
+
+<ul>
+  <li>platform: improved concurrency by releasing V8 lock while calling
+NativeFunction</li>
+  <li>platform: add <em>Process.getModuleByName(name)</em></li>
+  <li>platform: faster and more robust detach</li>
+  <li>python: stability improvements in CLI tools</li>
+  <li>frida-repl: replace <em>readline</em> with <em>prompt-toolkit</em></li>
+</ul>
+
+<p>4.1.4:</p>
+
+<ul>
+  <li>platform: faster and more robust teardown</li>
+  <li>frida-server: clean up on <em>SIGINT</em> and <em>SIGTERM</em></li>
+</ul>
+
+<p>4.1.5:</p>
+
+<ul>
+  <li>frida-ps: add support for listing applications</li>
+</ul>
+
+<p>4.1.6:</p>
+
+<ul>
+  <li>platform: fix crash on spawn on Mac, iOS and Linux</li>
+  <li>platform: add <em>NativePointer.compare()</em> and <em>NativePointer.equals()</em></li>
+  <li>platform: add <em>Process.enumerateMallocRanges{,Sync}()</em></li>
+  <li>frida-trace: switch from Enter to Ctrl+C for stopping</li>
+  <li>frida-trace: fix spawning of iOS apps</li>
+  <li>frida-repl: add prototype names to autocomplete</li>
+</ul>
+
+<p>4.1.7:</p>
+
+<ul>
+  <li>python: CLI tools stability improvements</li>
+</ul>
+
+<p>That’s all for now. Please help spread the word by sharing this post across
+the inter-webs. We’re still quite small as an open source project, so
+word-of-mouth marketing means a lot to us.</p>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 4.0.0 Released</title>
+        <link>http://www.frida.re/news/2015/05/08/frida-4-0-0-released/</link>
+        <pubDate>Fri, 08 May 2015 15:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/05/08/frida-4-0-0-released</guid>
+        <description><![CDATA[ <p>It’s time for an insane release with tons of improvements.</p>
+
+<p>Let’s start with a user-facing change. The CLI tool called <em>frida-repl</em> has
+been renamed to just <em>frida</em>, and now does tab completion! This and some other
+awesome REPL goodies were contributed by <a href="https://github.com/fitblip">@fitblip</a>.</p>
+
+<p>There is also integrated support for launching scripts straight from the shell:</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="gp">$ </span>frida Calculator -l calc.js
+    _____
+   <span class="o">(</span>_____<span class="o">)</span>
+    |   |    Frida 4.0.0 - A world-class dynamic
+    |   |                  instrumentation framework
+    |<span class="sb">`</span>-<span class="s1">'|
+    |   |    Commands:
+    |   |        help      -&gt; Displays the help system
+    |   |        object?   -&gt; Display information about '</span>object<span class="s1">'
+    |   |        exit/quit -&gt; Exit
+    |   |
+    |   |    More info at http://www.frida.re/docs/home/
+    `._.'</span>
+
+<span class="c"># The code in calc.js has now been loaded and executed</span>
+<span class="o">[</span>Local::ProcName::Calculator]-&gt;
+<span class="c"># Reload it from file at any time</span>
+<span class="gp">[Local::ProcName::Calculator]-&gt; </span>%reload
+<span class="o">[</span>Local::ProcName::Calculator]-&gt;</code></pre></figure>
+
+<p>Or, perhaps you’re tired of console.log() and would like to set some breakpoints
+in your scripts to help you understand what’s going on? Now you can, because
+Frida just got an integrated Node.js-compatible debugger.</p>
+
+<p><img src="http://cdn.meme.am/instances/500x/61299733.jpg" alt="Yo Dawg" title="Yo Dawg" /></p>
+
+<p>Yep yep, but it is actually quite useful, and all of the CLI tools provide
+the <code class="highlighter-rouge">--debug</code> switch to enable it:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># Connect Frida to a locally-running Calculator.app</span>
+<span class="c"># and load calc.js with the debugger enabled</span>
+<span class="gp">$ </span>frida Calculator -l calc.js --debug
+    _____
+   <span class="o">(</span>_____<span class="o">)</span>
+    |   |    Frida 4.0.0 - A world-class dynamic
+    |   |                  instrumentation framework
+    |<span class="sb">`</span>-<span class="s1">'|
+    |   |    Commands:
+    |   |        help      -&gt; Displays the help system
+    |   |        object?   -&gt; Display information about '</span>object<span class="s1">'
+    |   |        exit/quit -&gt; Exit
+    |   |
+    |   |    More info at http://www.frida.re/docs/home/
+    `._.'</span>
+
+Debugger listening on port 5858
+<span class="c"># We can now run node-inspector and start debugging calc.js</span>
+<span class="o">[</span>Local::ProcName::Calculator]-&gt;</code></pre></figure>
+
+<p>Here’s what it looks like:</p>
+
+<p><img src="/img/frida-debug.png" alt="Frida Debugger Session" title="Frida Debugger Session" /></p>
+
+<p>Ever found yourself wanting to <em>frida-trace</em> Objective-C APIs straight from
+the shell? Thanks to <a href="https://github.com/Tyilo">@Tyilo</a> you now can:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># Trace ObjC method calls in Safari</span>
+<span class="gp">$ </span>frida-trace -m <span class="s1">'-[NSView drawRect:]'</span> Safari</code></pre></figure>
+
+<p>There are also other goodies, like brand new support for generating backtraces
+and using debug symbols to symbolicate addresses:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">f</span> <span class="o">=</span> <span class="nx">Module</span><span class="p">.</span><span class="nx">findExportByName</span><span class="p">(</span><span class="s2">"libcommonCrypto.dylib"</span><span class="p">,</span>
+    <span class="s2">"CCCryptorCreate"</span><span class="p">);</span>
+<span class="nx">Interceptor</span><span class="p">.</span><span class="nx">attach</span><span class="p">(</span><span class="nx">f</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">onEnter</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"CCCryptorCreate called from:\n"</span> <span class="o">+</span>
+            <span class="nx">Thread</span><span class="p">.</span><span class="nx">backtrace</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">context</span><span class="p">,</span> <span class="nx">Backtracer</span><span class="p">.</span><span class="nx">ACCURATE</span><span class="p">)</span>
+            <span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">DebugSymbol</span><span class="p">.</span><span class="nx">fromAddress</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="s2">"\n"</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"\n"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">});</span></code></pre></figure>
+
+<p>Or perhaps you’re on Windows and trying to figure out who’s accessing certain
+memory regions? Yeah? Well check out the brand new
+<a href="/docs/javascript-api/#memoryaccessmonitor">MemoryAccessMonitor</a>. Technically
+this code isn’t new, but it just hasn’t been exposed to the JavaScript API
+until now.</p>
+
+<p>Another nice feature is that starting with this release it is no longer
+necessary to forward multiple TCP ports when using <code class="highlighter-rouge">frida-server</code> running
+on another device, e.g. Android.</p>
+
+<p>There is now also much better error feedback propagated all the way from a
+remote process to different exceptions in for example Python. With the previous
+release attaching to an inexistent pid on Mac would give you:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="nb">SystemError</span><span class="p">:</span> <span class="n">GDBus</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span><span class="n">org</span><span class="o">.</span><span class="n">gtk</span><span class="o">.</span><span class="n">GDBus</span><span class="o">.</span><span class="n">UnmappedGError</span><span class="o">.</span><span class="n">Quark</span><span class="o">.</span><span class="n">_g_2</span><span class="err">↩</span>
+<span class="n">dio_2derror_2dquark</span><span class="o">.</span><span class="n">Code0</span><span class="p">:</span> <span class="n">task_for_pid</span><span class="p">()</span> <span class="k">for</span> <span class="n">remote</span> <span class="n">pid</span> <span class="n">failed</span> <span class="n">w</span><span class="err">↩</span>
+<span class="n">hile</span> <span class="n">trying</span> <span class="n">to</span> <span class="n">make</span> <span class="n">pipe</span> <span class="n">endpoints</span><span class="p">:</span> <span class="p">(</span><span class="n">os</span><span class="o">/</span><span class="n">kern</span><span class="p">)</span> <span class="n">failure</span> <span class="p">(</span><span class="mi">5</span><span class="p">)</span></code></pre></figure>
+
+<p>Whoah, madness. This is now simply:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">frida</span><span class="o">.</span><span class="n">ProcessNotFoundError</span><span class="p">:</span> <span class="n">unable</span> <span class="n">to</span> <span class="n">find</span> <span class="n">process</span> <span class="k">with</span> <span class="n">pid</span> <span class="mi">1234</span></code></pre></figure>
+
+<p>That’s better. Let’s talk about performance. Perhaps you used frida-trace and
+wondered why it spent so much time “Resolving functions…”? On a typical iOS
+app resolving just one function would typically take about 8 seconds.
+This is now down to ~1 second. While there were some optimizations possible,
+I quickly realized that no matter how fast we make the enumeration of function
+exports, we would still need to transfer the data, and the transfer time alone
+could be unreasonable. Solution? Just move the logic to the target process and
+transfer the logic instead of the data. Simple.
+Also, the Dalvik and ObjC interfaces have been optimized so seconds have been
+reduced to milliseconds. The short story here is further laziness in when we
+interrogate the language runtimes. We took this quite far in the ObjC interface,
+where we now use ES6 proxies to provide a more idiomatic and efficient API.</p>
+
+<p>That brings us to the next topic. The ObjC interface has changed a bit.
+Essentially:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">NSString</span> <span class="o">=</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s2">"NSString"</span><span class="p">);</span></code></pre></figure>
+
+<p>is now:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">NSString</span> <span class="o">=</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">classes</span><span class="p">.</span><span class="nx">NSString</span><span class="p">;</span></code></pre></figure>
+
+<p>You still use <code class="highlighter-rouge">ObjC.classes</code> for enumerating the currently loaded classes,
+but this is now behaving like an object mapping class name to a JavaScript ObjC
+binding.</p>
+
+<p>Also, there’s no more casting, so instead of:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">NSSound</span> <span class="o">=</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s1">'NSSound'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">sound</span> <span class="o">=</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">cast</span><span class="p">(</span><span class="nx">ptr</span><span class="p">(</span><span class="s2">"0x1234"</span><span class="p">),</span> <span class="nx">NSSound</span><span class="p">);</span></code></pre></figure>
+
+<p>You just go:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">sound</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nb">Object</span><span class="p">(</span><span class="nx">ptr</span><span class="p">(</span><span class="s2">"0x1234"</span><span class="p">));</span></code></pre></figure>
+
+<p>Yep, no more class hierarchies trying to mimic the ObjC one. Just a fully
+dynamic wrapper where method wrappers are built on the first access, and
+the list of methods isn’t fetched unless you try to enumerate the object’s
+properties.</p>
+
+<p>Anyway, this is getting long, so let’s summarize the other key changes:</p>
+
+<ul>
+  <li>The Dalvik interface now handles varargs methods. Thanks to
+<a href="https://github.com/dmchell">@dmchell</a> for reporting and helping track this
+down.</li>
+  <li><em>NativePointer</em> also provides <code class="highlighter-rouge">.and()</code>, <code class="highlighter-rouge">.or()</code> and <code class="highlighter-rouge">.xor()</code> thanks to
+<a href="https://github.com/Tyilo">@Tyilo</a>.</li>
+  <li>The Interceptor’s <em>onEnter</em>/<em>onLeave</em> callbacks used to expose the CPU
+registers through <code class="highlighter-rouge">this.registers</code>, which has been renamed to <code class="highlighter-rouge">this.context</code>,
+and now allows you to write to the registers as well.</li>
+  <li><em>Process.enumerateThreads()</em>’s thread objects got their CPU context field
+renamed from <code class="highlighter-rouge">registers</code> to <code class="highlighter-rouge">context</code> for consistency.</li>
+  <li>Synchronous versions of enumerateFoo() API available as enumerateFoo<strong>Sync</strong>()
+methods that simply return an array with all of the items.</li>
+  <li><code class="highlighter-rouge">Memory.readCString()</code> is now available for reading ASCII C strings.</li>
+  <li><code class="highlighter-rouge">Frida.version</code> can be interrogated to check which version you’re running,
+and this is also provided on the <em>frida-core</em> end, which for example is
+exposed by <em>frida-python</em> through <code class="highlighter-rouge">frida.__version__</code>.</li>
+  <li><em>Stalker</em> now supports the <em>jecxz</em> and <em>jrcxz</em> instructions. This is good news
+for <a href="https://github.com/frida/cryptoshark">CryptoShark</a>, which should soon
+provide some updated binaries to bundle the latest version of Frida.</li>
+  <li>V8 has been updated to 4.3.62, and a lot of ES6 features have been enabled.</li>
+  <li>We’re now using a development version of the upcoming Capstone 4.0.</li>
+  <li>All third-party dependencies have been updated to the latest and greatest.</li>
+  <li>Windows XP is now supported. This is not a joke. I realized that we didn’t
+actually use any post-XP APIs, and as I had to rebuild the dependencies on
+Windows I figured we might as well just lower our OS requirements to help
+those of you still instrumenting software on XP.</li>
+</ul>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 3.0.0 Released</title>
+        <link>http://www.frida.re/news/2015/03/20/frida-3-0-0-released/</link>
+        <pubDate>Fri, 20 Mar 2015 15:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/03/20/frida-3-0-0-released</guid>
+        <description><![CDATA[ <p>You may have wondered:</p>
+
+<blockquote>
+  <p>Why a Python API, but JavaScript debugging logic?</p>
+</blockquote>
+
+<p>Well, you can now do this:</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="gp">$ </span>npm install frida</code></pre></figure>
+
+<p>We just brought you brand new <a href="https://github.com/frida/frida-node">Node.js bindings</a>,
+and they are fully asynchronous:</p>
+
+<script src="https://gist.github.com/6ecae99945ccba47427a.js"> </script>
+
+<p>Check out the <a href="https://github.com/frida/frida-node/blob/46a5f92203ab86978a2af68d6c926d6d2b63fbe7/examples/interactive.js">examples</a>
+to get an idea what the API looks like. It’s pretty much a 1:1 mapping of the
+API provided by the Python bindings, but following Node.js / JavaScript
+conventions like camelCased method-names, methods returning ES6 <em>Promise</em>
+objects instead of blocking, etc.</p>
+
+<p>Now, combine this with <a href="https://github.com/nwjs/nw.js/">NW.js</a> and you can build
+your own desktop apps with HTML, CSS, and JavaScript all the way through.</p>
+
+<p>So, brand new Node.js bindings; awesome! We did not stop there, however.
+But first, a few words about the future. I am excited to announce that I have
+just started a company with the goal of sponsoring part-time development of
+Frida. By offering reverse-engineering and software development expertise,
+the goal is to generate enough revenue to pay my bills and leave some time
+to work on Frida. Longer term I’m hoping there will also be demand for help
+adding features or integrating Frida into third-party products.
+In the meantime, however, if you know someone looking for reverse-engineering
+or software development expertise, I would really appreciate it if you could
+kindly refer them to get in touch. Please see <a href="https://github.com/oleavr/cv/raw/master/oleavr.pdf">my CV</a>
+for details.</p>
+
+<p>That aside, let’s get back to the release. Next up: 32-bit Linux support!
+Even <em>Stalker</em> has been ported. Not just that, the Linux backend can even do
+cross-architecture injection like we do on the other platforms. This means a
+64-bit Frida process, e.g. your Python interpreter, can inject into a 32-bit
+process. The other direction works too.</p>
+
+<p>Another awesome update is that <a href="https://github.com/Tyilo">Tyilo</a> contributed
+<a href="https://github.com/frida/frida-python/commit/daf1a310670588e5672af2205658598be342c2e2">improvements</a>
+to <em>frida-trace</em> so it now uses man-pages for auto-generating the log handlers.
+Awesome, huh? But there’s even more goodies:</p>
+
+<ul>
+  <li><em>frida-server</em> ports are now recycled, so if you’re using Frida on Android
+you won’t have to keep forwarding ports unless you’re actually attaching to
+multiple processes at the same time.</li>
+  <li>Linux and Android <code class="highlighter-rouge">spawn()</code> support has been improved to also support PIE
+binaries.</li>
+  <li>Android stability and compatibility improvements.</li>
+  <li>Mac and Linux build system have been revamped, and make it easy to build just
+the parts that you care about; and maybe even some components you didn’t even
+know were there that were previously not built by default.</li>
+  <li>Python bindings have a minor simplification so instead of
+<code class="highlighter-rouge">frida.attach(pid).session.create_script()</code> it’s simply just
+<code class="highlighter-rouge">frida.attach(pid).create_script()</code>. This is just like in the brand
+new Node.js bindings, and the reason we had to bump the major version.</li>
+</ul>
+
+<p>That’s the gist of it. Please help spread the word by sharing this post across
+the inter-webs. We’re still quite small as an open source project, so
+word-of-mouth marketing means a lot to us.</p>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 2.0.2 Released</title>
+        <link>http://www.frida.re/news/2015/03/01/frida-2-0-2-released/</link>
+        <pubDate>Sun, 01 Mar 2015 02:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/03/01/frida-2-0-2-released</guid>
+        <description><![CDATA[ <p>Thanks to your excellent feedback we just eliminated a crasher when using
+Frida on Windows with certain iOS device configurations. As this is a very
+important use-case we decided to do a hotfix release without any other changes.</p>
+
+<p>Please keep the bug-reports coming!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 2.0.1 Released</title>
+        <link>http://www.frida.re/news/2015/02/28/frida-2-0-1-released/</link>
+        <pubDate>Sat, 28 Feb 2015 17:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/02/28/frida-2-0-1-released</guid>
+        <description><![CDATA[ <p>Just a quick bug-fix release to remedy an iOS issue that slipped through the
+final testing of 2.0.0. Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 2.0.0 Released</title>
+        <link>http://www.frida.re/news/2015/02/28/frida-2-0-0-released/</link>
+        <pubDate>Sat, 28 Feb 2015 16:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/02/28/frida-2-0-0-released</guid>
+        <description><![CDATA[ <p>It’s time for a new and exciting release! Key changes include:</p>
+
+<ul>
+  <li>No more kernel panics on Mac and iOS! Read the full story
+<a href="https://medium.com/@oleavr/diy-kernel-panic-os-x-and-ios-in-10-loc-c250d9649159">here</a>.</li>
+  <li>Mac and iOS injector performs manual mapping of Frida’s dylib. This means
+we’re able to attach to heavily sandboxed processes.</li>
+  <li>The CLI tools like <em>frida-trace</em>, <em>frida-repl</em>, etc., have brand new support
+for spawning processes:</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>frida-trace -i <span class="s1">'open*'</span> -i <span class="s1">'read*'</span> /bin/cat /etc/resolv.conf
+    27 ms	open<span class="nv">$NOCANCEL</span><span class="o">()</span>
+    28 ms	<span class="nb">read</span><span class="nv">$NOCANCEL</span><span class="o">()</span>
+    28 ms	<span class="nb">read</span><span class="nv">$NOCANCEL</span><span class="o">()</span>
+    28 ms	<span class="nb">read</span><span class="nv">$NOCANCEL</span><span class="o">()</span>
+Target process terminated.
+Stopping...
+<span class="err">$</span></code></pre></figure>
+
+<ul>
+  <li>Usability improvements in <em>frida-repl</em> and <em>frida-discover</em>.</li>
+  <li>First call to <code class="highlighter-rouge">DeviceManager.enumerate_devices()</code> does a better job and
+also gives you the currently connected iOS devices, so for simple applications
+or scripts you no longer have to subscribe to updates if you require the
+device to already be present.</li>
+  <li>The python API now provides you with <code class="highlighter-rouge">frida.get_usb_device(timeout = 0)</code> and
+<code class="highlighter-rouge">frida.get_remote_device()</code> for easy access to iOS and remote/Android
+devices.</li>
+  <li>The <code class="highlighter-rouge">onEnter</code> and <code class="highlighter-rouge">onLeave</code> callbacks passed to <code class="highlighter-rouge">Interceptor.attach()</code> may
+access <code class="highlighter-rouge">this.registers</code> to inspect CPU registers, which is really useful
+when dealing with custom calling conventions.</li>
+  <li><code class="highlighter-rouge">console.log()</code> logs to the console on your application’s side instead of
+the target process. This change is actually why we had to bump the major
+version for this release.</li>
+  <li>Android 5.0 compatibility, modulo ART support.</li>
+  <li>Brand new support for Android/x86. Everything works except the Dalvik
+integration; please get in touch if you’d like to help out with a pull-request
+to fix that!</li>
+</ul>
+
+<p>Want to help out? Have a look at our <a href="http://www.frida.re/docs/gsoc-ideas-2015/">GSoC 2015 Ideas Page</a>
+to get an overview of where we’d like to go next.</p>
+
+<p>Enjoy!</p>
+
+<p><strong>Update 2am:</strong> An iOS issue slipped through the final testing, so we
+just pushed 2.0.1 to remedy this.</p>
+
+<p><strong>Update 11pm:</strong> Thanks to your excellent feedback we found a critical
+bug when using Frida on Windows with certain iOS device configurations.
+Please upgrade to 2.0.2 and let us know if you run into any issues.</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.8.0 Released</title>
+        <link>http://www.frida.re/news/2015/02/22/frida-1-8-0-released/</link>
+        <pubDate>Sun, 22 Feb 2015 16:33:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2015/02/22/frida-1-8-0-released</guid>
+        <description><![CDATA[ <p><strong>This release introduced a serious regression on iOS and was quickly pulled
+from our Cydia repo, though it was available for Mac, Linux and Android while
+waiting to be replaced by <a href="/news/2015/02/28/frida-2-0-0-released/">2.0.0</a>.</strong></p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.6.8 Released</title>
+        <link>http://www.frida.re/news/2014/11/17/frida-1-6-8-released/</link>
+        <pubDate>Mon, 17 Nov 2014 17:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/11/17/frida-1-6-8-released</guid>
+        <description><![CDATA[ <p>Just a minor bug-fix release to fix <code class="highlighter-rouge">spawn()</code> on Mac, and resolve some
+teardown issues. Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.6.7 Released</title>
+        <link>http://www.frida.re/news/2014/11/03/frida-1-6-7-released/</link>
+        <pubDate>Mon, 03 Nov 2014 07:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/11/03/frida-1-6-7-released</guid>
+        <description><![CDATA[ <p>Tired of waiting for Frida to attach to 32-bit processes on 64-bit Mac
+or iOS systems? Or perhaps <code class="highlighter-rouge">frida-trace</code> takes a while to resolve functions?
+If any of the above, or none of it, then this release is for you!</p>
+
+<p>Attaching to 32-bit processes on Mac/iOS hosts has been optimized, and instead
+of seconds this is now a matter of milliseconds. That’s however specific to
+Darwin OSes; this release also speeds up enumeration of module exports on
+all OSes. This is now 75% faster, and should be very noticable when using
+<code class="highlighter-rouge">frida-trace</code> and waiting for it to resolve functions.</p>
+
+<p>Also, as an added bonus, teardown while attached to multiple processes no
+longer crashes on Darwin and Linux.</p>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.6.6 Released</title>
+        <link>http://www.frida.re/news/2014/11/03/frida-1-6-6-released/</link>
+        <pubDate>Mon, 03 Nov 2014 05:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/11/03/frida-1-6-6-released</guid>
+        <description><![CDATA[ <p><strong>This release introduced a serious regression and was quickly pulled and
+replaced by <a href="/news/2014/11/03/frida-1-6-7-released/">1.6.7</a>.</strong></p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.6.5 Released</title>
+        <link>http://www.frida.re/news/2014/10/29/frida-1-6-5-released/</link>
+        <pubDate>Wed, 29 Oct 2014 15:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/10/29/frida-1-6-5-released</guid>
+        <description><![CDATA[ <p>It’s release o’clock, and time for some bug fixes:</p>
+
+<ul>
+  <li>iOS 8.1 is now supported, and the ARM64 support is better than ever.</li>
+  <li>The iOS USB transport no longer disconnects when sending a burst of data to
+the device. This would typically happen when using <code class="highlighter-rouge">frida-trace</code> and tracing
+a bunch of functions, resulting in a burst of data being sent over the wire.
+This was actually <a href="https://bugzilla.gnome.org/show_bug.cgi?id=11059">a generic networking issue affecting Mac and iOS</a>,
+but was very reproducible when using Frida with a tethered iOS device.</li>
+  <li>Eliminated crashes on shutdown of the Python interpreter.</li>
+  <li>The <code class="highlighter-rouge">onEnter</code> and <code class="highlighter-rouge">onLeave</code> callbacks in <code class="highlighter-rouge">frida-trace</code> scripts are now called
+with <code class="highlighter-rouge">this</code> bound to the correct object, which means that it’s bound to an
+object specific to that thread and invocation, and not an object shared by
+all threads and invocations.</li>
+</ul>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.6.4 Released</title>
+        <link>http://www.frida.re/news/2014/10/18/frida-1-6-4-released/</link>
+        <pubDate>Sat, 18 Oct 2014 20:04:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/10/18/frida-1-6-4-released</guid>
+        <description><![CDATA[ <p>It’s time for a bug-fix release!</p>
+
+<p>Stalker improvements:</p>
+
+<ul>
+  <li>The engine no longer pre-allocates a fixed chunk of 256 MB per thread being
+traced, and now grows this dynamically in a reentrancy-safe manner.</li>
+  <li>Eliminated a bug in the cache lookup logic where certain blocks would always
+result in a cache miss. Those blocks thus got recompiled every time they
+were about to get executed, slowing down execution and clogging up the cache
+with more and more entries, and eventually running out of memory.</li>
+  <li>Relocation of RIP-relative <code class="highlighter-rouge">cmpxchg</code> instruction is now handled correctly.</li>
+</ul>
+
+<p>Better Dalvik integration (Android):</p>
+
+<ul>
+  <li>App’s own classes can now be loaded.</li>
+  <li>Several marshalling bugs have been fixed.</li>
+</ul>
+
+<p>Script runtime:</p>
+
+<ul>
+  <li>More than one NativeFunction with the same target address no longer results
+in use-after-free.</li>
+</ul>
+
+<p>Also, <a href="https://github.com/frida/cryptoshark">CryptoShark 0.1.2</a> is out,
+with an upgraded Frida engine and lots of performance improvements so the GUI
+is able to keep up with the Stalker. Go get it while it’s hot!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.6.3 Released</title>
+        <link>http://www.frida.re/news/2014/08/24/frida-1-6-3-released/</link>
+        <pubDate>Sun, 24 Aug 2014 15:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/08/24/frida-1-6-3-released</guid>
+        <description><![CDATA[ <p>This latest release includes a bunch of enhancements and bug fixes.
+Some of the highlights:</p>
+
+<ul>
+  <li>
+    <p>The remainder of Frida’s internals have been migrated from udis86 to
+Capstone, which means that our Stalker is now able to trace binaries with
+very recent x86 instructions. Part of this work also included battle-testing
+it on 32- and 64-bit binaries on Windows and Mac, and all known issues have
+now been resolved.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">Memory.protect()</code> has been added to the JavaScript API, allowing you to
+easily change page protections. For example:</p>
+  </li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="nx">Memory</span><span class="p">.</span><span class="nx">protect</span><span class="p">(</span><span class="nx">ptr</span><span class="p">(</span><span class="s2">"0x1234"</span><span class="p">),</span> <span class="mi">4096</span><span class="p">,</span> <span class="s1">'rw-'</span><span class="p">);</span></code></pre></figure>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">Process.enumerateThreads()</code> omits Frida’s own threads so you don’t have to
+worry about them.</p>
+  </li>
+  <li>
+    <p>Python 3 binaries are now built against Python 3.4.</p>
+  </li>
+</ul>
+
+<p>So with this release out, let’s talk about <a href="https://github.com/frida/cryptoshark">CryptoShark</a>:</p>
+
+<iframe width="560" height="315" src="//www.youtube.com/embed/hzDsxtcRavY?rel=0" frameborder="0" allowfullscreen=""></iframe>
+
+<p>Grab a pre-built Windows binary <a href="http://build.frida.re/frida/windows/Win32-Release/bin/cryptoshark-0.1.1.exe">here</a>,
+or build it from source if you’d like to try it out on Mac or Linux.</p>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.6.2 Released</title>
+        <link>http://www.frida.re/news/2014/08/03/frida-1-6-2-released/</link>
+        <pubDate>Sun, 03 Aug 2014 09:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/08/03/frida-1-6-2-released</guid>
+        <description><![CDATA[ <p>It’s release o’clock, and this time we’re bringing you more than just bugfixes.
+Meet <code class="highlighter-rouge">Instruction.parse()</code>:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="nx">Instruction</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">ptr</span><span class="p">(</span><span class="s2">"0x1234"</span><span class="p">));</span>
+<span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="nx">Instruction</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">a</span><span class="p">.</span><span class="nx">next</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">a</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">b</span><span class="p">);</span></code></pre></figure>
+
+<p>Output:</p>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm">push rbp
+mov rbp, rsp</code></pre></figure>
+
+<p>How is this implemented you ask? That’s the cool part. Frida already uses the
+amazing <a href="http://www.capstone-engine.org/">Capstone disassembly framework</a>
+behind the scenes, and thus it makes perfect sense to make it available to the
+JavaScript runtime. Have a look at the
+<a href="http://www.frida.re/docs/javascript-api/">JavaScript API Reference</a> for all
+the details.</p>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.6.1 Released</title>
+        <link>http://www.frida.re/news/2014/07/26/frida-1-6-1-released/</link>
+        <pubDate>Sat, 26 Jul 2014 11:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/07/26/frida-1-6-1-released</guid>
+        <description><![CDATA[ <p>It’s time for a bugfix release. Highlights:</p>
+
+<ul>
+  <li>Compatibility with the Pangu iOS jailbreak on ARM64. The issue is that RWX
+pages are not available like they used to be with the evad3rs jailbreak.</li>
+  <li>Fix occasional target process crash when detaching.</li>
+  <li>Fix crash when trying to attach to a process the second time after failing
+to establish the first time. This primarily affected Android users, but could
+happen on any OS when using <code class="highlighter-rouge">frida-server</code>.</li>
+  <li>Faster and more reliable injection on Linux/x86-64 and Android/ARM.</li>
+  <li>Fix issues preventing hooking of HeapFree and friends on Windows.</li>
+  <li>Upgraded GLib, libgee, json-glib and Vala dependencies for improved
+performance and bugfixes.</li>
+  <li>No more resource leaks. Please report if you find any.</li>
+</ul>
+
+<p>Also new since 1.6.0, as covered in my <a href="https://medium.com/@oleavr/build-a-debugger-in-5-minutes-1-5-51dce98c3544">blog post</a>, there is now a full-
+featured <a href="https://github.com/frida/frida-qml">binding for Qml</a>. This should be of interest to those of you
+building graphical cross-platform tools.</p>
+
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.6.0 Released</title>
+        <link>http://www.frida.re/news/2014/05/29/frida-1-6-0-released/</link>
+        <pubDate>Thu, 29 May 2014 15:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/05/29/frida-1-6-0-released</guid>
+        <description><![CDATA[ <p>As some of you may have noticed, Frida recently got brand new Android support,
+allowing you to easily instrument code just like on Windows, Mac, Linux and iOS.
+This may sound cool and all, but Android does run a lot of Java code, which
+means you’d only be able to observe the native side-effects of whatever
+that code was doing. You could of course use Frida’s FFI API to poke your way
+into the VM, but hey, shouldn’t Frida just do that dirty plumbing for you?
+Of course it should!</p>
+
+<p>Here’s what it looks like in action:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="nx">Dalvik</span><span class="p">.</span><span class="nx">perform</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">Activity</span> <span class="o">=</span> <span class="nx">Dalvik</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s2">"android.app.Activity"</span><span class="p">);</span>
+    <span class="nx">Activity</span><span class="p">.</span><span class="nx">onResume</span><span class="p">.</span><span class="nx">implementation</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="nx">send</span><span class="p">(</span><span class="s2">"onResume() got called! Let's call the original implementation"</span><span class="p">);</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">onResume</span><span class="p">();</span>
+    <span class="p">};</span>
+<span class="p">});</span></code></pre></figure>
+
+<p>The <code class="highlighter-rouge">Dalvik.perform()</code> call takes care of attaching your thread to the VM,
+and isn’t necessary in callbacks from Java. Also, the first time you call
+<code class="highlighter-rouge">Dalvik.use()</code> with a given class name, Frida will interrogate the VM and
+build a JavaScript wrapper on-the-fly. Above we ask for the
+<a href="http://developer.android.com/reference/android/app/Activity.html">Activity</a>
+class and replace its implementation of <code class="highlighter-rouge">onResume</code> with our own version,
+and proceed to calling the original implementation after sending a message
+to the debugger (running on your Windows, Mac or Linux machine). You could
+of course choose to not call the original implementation at all, and emulate
+its behavior. Or, perhaps you’d like to simulate an error scenario:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="nx">Dalvik</span><span class="p">.</span><span class="nx">perform</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">Activity</span> <span class="o">=</span> <span class="nx">Dalvik</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s2">"android.app.Activity"</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">Exception</span> <span class="o">=</span> <span class="nx">Dalvik</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s2">"java.lang.Exception"</span><span class="p">);</span>
+    <span class="nx">Activity</span><span class="p">.</span><span class="nx">onResume</span><span class="p">.</span><span class="nx">implementation</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="k">throw</span> <span class="nx">Exception</span><span class="p">.</span><span class="nx">$new</span><span class="p">(</span><span class="s2">"Oh noes!"</span><span class="p">);</span>
+    <span class="p">};</span>
+<span class="p">});</span></code></pre></figure>
+
+<p>So there you just instantiated a Java Exception and threw it straight from
+your JavaScript implementation of <code class="highlighter-rouge">Activity.onResume</code>.</p>
+
+<p>This release also comes with some other runtime goodies:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">Memory.copy(dst, src, n)</code>: just like memcpy</li>
+  <li><code class="highlighter-rouge">Memory.dup(mem, size)</code>: short-hand for <code class="highlighter-rouge">Memory.alloc()</code> followed by
+<code class="highlighter-rouge">Memory.copy()</code></li>
+  <li><code class="highlighter-rouge">Memory.writeXXX()</code>: the missing <code class="highlighter-rouge">Memory.read()</code> counterparts: S8, S16, U16,
+S32, U32, S64, U64, ByteArray, Utf16String and AnsiString</li>
+  <li><code class="highlighter-rouge">Process.pointerSize</code> to make your scripts more portable</li>
+  <li><code class="highlighter-rouge">NativePointer</code> instances now have a convenient <code class="highlighter-rouge">isNull()</code> method</li>
+  <li><code class="highlighter-rouge">NULL</code> constant so you don’t have to do <code class="highlighter-rouge">ptr("0")</code> all over the place</li>
+  <li><code class="highlighter-rouge">WeakRef.bind(value, fn)</code> and <code class="highlighter-rouge">WeakRef.unbind(id)</code> for the hardcore:
+The former monitors <code class="highlighter-rouge">value</code> so <code class="highlighter-rouge">fn</code> gets called as soon as <code class="highlighter-rouge">value</code> has been
+garbage-collected, or the script is about to get unloaded. It returns an
+id that you can pass to <code class="highlighter-rouge">unbind()</code> for explicit cleanup.
+This API is useful if you’re building a language-binding, where you need to
+free native resources when a JS value is no longer needed.</li>
+</ul>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.4.2 Released</title>
+        <link>http://www.frida.re/news/2014/05/14/frida-1-4-2-released/</link>
+        <pubDate>Wed, 14 May 2014 13:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/05/14/frida-1-4-2-released</guid>
+        <description><![CDATA[ <p>Just a quick bugfix release to squash
+<a href="https://github.com/frida/frida-core/issues/5">this annoying bug</a>, which is
+reproducible on all supported x86 OSes. Thanks for Guillaume for tracking
+this one down.</p>
+
+<p>As a bonus, frida-repl now also works on Windows. Happy REPLing!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.4.1 Released</title>
+        <link>http://www.frida.re/news/2014/05/13/frida-1-4-1-released/</link>
+        <pubDate>Tue, 13 May 2014 17:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/05/13/frida-1-4-1-released</guid>
+        <description><![CDATA[ <p>Interested in spawning processes on Windows or Linux, and not just on Mac? Or
+maybe you’ve been bitten by the Linux injector crashing your processes instead
+of letting you inject into them? Or maybe you had a function name that was so
+long that frida-trace overflowed the max filename length on Windows? Well, if
+any of the above, or none of it, then Frida 1.4.1 is for you!</p>
+
+<p>Thanks to Guillaume and Pedro for making this release awesome. Keep those pull-
+requests and bug reports coming!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.4.0 Released</title>
+        <link>http://www.frida.re/news/2014/05/03/frida-1-4-0-released/</link>
+        <pubDate>Sat, 03 May 2014 19:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/05/03/frida-1-4-0-released</guid>
+        <description><![CDATA[ <p>Did anyone say Android? Frida 1.4.0 is out, with brand new Android support!
+Have a look at the documentation <a href="/docs/android/">here</a>
+to get started. Also new in this release is that Frida is now powered by
+the amazing <a href="http://www.capstone-engine.org/">Capstone Disassembly Engine</a>,
+which means our cross-platform code instrumentation is even more powerful.
+It also paves the way for taking the x86-only <a href="https://github.com/frida/frida-gum/blob/41dbb1d27a784fd8b5e233929a317cd41beb9c2d/tests/core/arch-x86/stalker-x86.c#L78">stealth tracing</a>
+to new architectures in future releases.</p>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.2.1 Released</title>
+        <link>http://www.frida.re/news/2014/04/21/frida-1-2-1-released/</link>
+        <pubDate>Mon, 21 Apr 2014 08:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/04/21/frida-1-2-1-released</guid>
+        <description><![CDATA[ <p>Had some fun tracing Apple’s crypto APIs, which lead to the discovery of
+a few bugs. So here’s 1.2.1 bringing some critical ARM-related bugfixes:</p>
+
+<ul>
+  <li>ARM32: Fix crashes caused by register clobber issue in V8 on ARM32 due to
+an ABI difference regarding <code class="highlighter-rouge">r9</code> in Apple’s ABI compared to AAPCS.</li>
+  <li>ARM32: Fix ARM32/Thumb relocator branch rewriting for immediate same-mode
+branches.</li>
+  <li>ARM64: Improve ARM64 relocator to support rewriting <code class="highlighter-rouge">b</code> and <code class="highlighter-rouge">bl</code>.</li>
+</ul>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.2.0 Released</title>
+        <link>http://www.frida.re/news/2014/04/17/frida-1-2-0-released/</link>
+        <pubDate>Thu, 17 Apr 2014 09:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/04/17/frida-1-2-0-released</guid>
+        <description><![CDATA[ <p>It’s release-o-clock, and Frida 1.2.0 is finally out! Bugfixes aside, this
+release introduces brand new ARM64 support, which is quite useful for those of
+you using Frida on your iPhone 5S or iPad Air. You can now inject into both 64-
+and 32-bit processes, just like on Mac and Windows.</p>
+
+<p>This release also improves stability on ARM32, where attaching to short
+functions used to result in undefined behavior.</p>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.0.11 Released</title>
+        <link>http://www.frida.re/news/2014/03/09/frida-1-0-11-released/</link>
+        <pubDate>Sun, 09 Mar 2014 11:00:00 -0700</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/03/09/frida-1-0-11-released</guid>
+        <description><![CDATA[ <p>Some of you experienced issues injecting into processes on Windows, as well as
+crashes on iOS. Here’s a new release bringing some serious improvements to
+Frida’s internals:</p>
+
+<ul>
+  <li>V8 has been upgraded to 3.25 in order to fix the iOS stability issues. This
+also means new features (like ECMAScript 6) and improved performance on all
+platforms. Another nice aspect is that Frida now depends on a V8 version
+that runs on 64-bit ARM, which paves the way for porting Frida itself to
+AArch64.</li>
+  <li>The Windows injector has learned some new tricks and will get you into even
+more processes. A configuration error was also discovered in the Windows
+build system, which explains why some of you were unable to inject into
+some processes.</li>
+  <li>For those of you building Frida on Windows, the build system there now
+depends on VS2013. This means XP is no longer supported, though it is still
+possible to build with the <code class="highlighter-rouge">v120_xp</code> toolchain if any of you still depend
+on that, so let me know if this is a deal-breaker for you.</li>
+  <li>The recently added support for <code class="highlighter-rouge">this.lastError</code> (Windows) is now working
+correctly.</li>
+</ul>
+
+<p>That’s all for now. Let us know what you think, and if you like Frida, please
+help spread the word! :)</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.0.10 Released</title>
+        <link>http://www.frida.re/news/2014/02/15/frida-1-0-10-released/</link>
+        <pubDate>Sat, 15 Feb 2014 16:51:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/02/15/frida-1-0-10-released</guid>
+        <description><![CDATA[ <p>This release brings a few improvements:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">Interceptor</code> is now compatible with a lot more functions on iOS/ARM.</li>
+  <li>A new CLI tool called <code class="highlighter-rouge">frida-repl</code> provides you with a basic REPL to
+experiment with the JavaScript API from inside a target process.</li>
+  <li><code class="highlighter-rouge">onLeave</code> callback passed to <code class="highlighter-rouge">Interceptor.attach()</code> is now able to replace
+the return value by calling <code class="highlighter-rouge">retval.replace()</code>.</li>
+  <li>Both <code class="highlighter-rouge">onEnter</code> and <code class="highlighter-rouge">onLeave</code> callbacks passed to <code class="highlighter-rouge">Interceptor.attach()</code> can
+access <code class="highlighter-rouge">this.errno</code> (UNIX) or <code class="highlighter-rouge">this.lastError</code> (Windows) to inspect or
+manipulate the current thread’s last system error.</li>
+</ul>
+
+<p>Here’s how you can combine the latter three to simulate network conditions for
+a specific process running on your Mac:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">~ <span class="nv">$ </span>frida-repl TargetApp</code></pre></figure>
+
+<p>Then paste in:</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="nx">callbacks</span> <span class="o">=</span> <span class="p">{</span> <span class="o">\</span>
+    <span class="na">onEnter</span><span class="p">:</span> <span class="kd">function</span> <span class="nx">onEnter</span><span class="p">(</span><span class="nx">args</span><span class="p">)</span> <span class="p">{</span> <span class="o">\</span>
+        <span class="nx">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nx">ptr</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="c1">// Avoid side-effects on socket \</span>
+    <span class="p">},</span> <span class="o">\</span>
+    <span class="na">onLeave</span><span class="p">:</span> <span class="kd">function</span> <span class="nx">onLeave</span><span class="p">(</span><span class="nx">retval</span><span class="p">)</span> <span class="p">{</span> <span class="o">\</span>
+        <span class="kd">var</span> <span class="nx">ECONNREFUSED</span> <span class="o">=</span> <span class="mi">61</span><span class="p">;</span> <span class="o">\</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">errno</span> <span class="o">=</span> <span class="nx">ECONNREFUSED</span><span class="p">;</span> <span class="o">\</span>
+        <span class="nx">retval</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="o">\</span>
+    <span class="p">}</span> <span class="o">\</span>
+<span class="p">};</span> <span class="o">\</span>
+<span class="nx">Module</span><span class="p">.</span><span class="nx">enumerateExports</span><span class="p">(</span><span class="s2">"libsystem_kernel.dylib"</span><span class="p">,</span> <span class="p">{</span> <span class="o">\</span>
+    <span class="na">onMatch</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">exp</span><span class="p">)</span> <span class="p">{</span> <span class="o">\</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">exp</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s2">"connect"</span><span class="p">)</span> <span class="o">===</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="nx">exp</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s2">"connectx"</span><span class="p">)</span> <span class="o">!==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="o">\</span>
+            <span class="nx">Interceptor</span><span class="p">.</span><span class="nx">attach</span><span class="p">(</span><span class="nx">exp</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span> <span class="nx">callbacks</span><span class="p">);</span> <span class="o">\</span>
+        <span class="p">}</span> <span class="o">\</span>
+    <span class="p">},</span> <span class="o">\</span>
+    <span class="nx">onComplete</span><span class="err">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{}</span> <span class="o">\</span>
+<span class="p">});</span></code></pre></figure>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.0.9 Released</title>
+        <link>http://www.frida.re/news/2014/01/25/frida-1-0-9-released/</link>
+        <pubDate>Sat, 25 Jan 2014 14:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/01/25/frida-1-0-9-released</guid>
+        <description><![CDATA[ <p>Another release — this time with some new features:</p>
+
+<ul>
+  <li>Objective-C integration for Mac and iOS. Here’s an example to whet your
+appetite:</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">UIAlertView</span> <span class="o">=</span> <span class="nx">ObjC</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s1">'UIAlertView'</span><span class="p">);</span> <span class="cm">/* iOS */</span>
+<span class="nx">ObjC</span><span class="p">.</span><span class="nx">schedule</span><span class="p">(</span><span class="nx">ObjC</span><span class="p">.</span><span class="nx">mainQueue</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">view</span> <span class="o">=</span> <span class="nx">UIAlertView</span><span class="p">.</span><span class="nx">alloc</span><span class="p">().</span><span class="nx">initWithTitle_message_delegate_cancelButtonTitle_otherButtonTitles_</span><span class="p">(</span>
+        <span class="s2">"Frida"</span><span class="p">,</span>
+        <span class="s2">"Hello from Frida"</span><span class="p">,</span>
+        <span class="nx">ptr</span><span class="p">(</span><span class="s2">"0"</span><span class="p">),</span>
+        <span class="s2">"OK"</span><span class="p">,</span>
+        <span class="nx">ptr</span><span class="p">(</span><span class="s2">"0"</span><span class="p">));</span>
+    <span class="nx">view</span><span class="p">.</span><span class="nx">show</span><span class="p">();</span>
+    <span class="nx">view</span><span class="p">.</span><span class="nx">release</span><span class="p">();</span>
+<span class="p">});</span></code></pre></figure>
+
+<ul>
+  <li><code class="highlighter-rouge">Module.enumerateExports()</code> now also enumerates exported variables and not
+just functions. The <code class="highlighter-rouge">onMatch</code> callback receives an <code class="highlighter-rouge">exp</code> object where the
+<code class="highlighter-rouge">type</code> field is either <code class="highlighter-rouge">function</code> or <code class="highlighter-rouge">variable</code>.</li>
+</ul>
+
+<p>To get the full scoop on the ObjC integration, have a look at the
+<a href="http://www.frida.re/docs/javascript-api/">JavaScript API reference</a>.</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.0.8 Released</title>
+        <link>http://www.frida.re/news/2014/01/15/frida-1-0-8-released/</link>
+        <pubDate>Wed, 15 Jan 2014 14:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/01/15/frida-1-0-8-released</guid>
+        <description><![CDATA[ <p>We just rolled out a bugfix release:
+- Support injection into Mac App Store apps
+- Eliminate iOS daemon auto-start issues
+- No more iOS crashes shortly after injecting</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.0.7 Released</title>
+        <link>http://www.frida.re/news/2014/01/12/frida-1-0-7-released/</link>
+        <pubDate>Sun, 12 Jan 2014 14:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/01/12/frida-1-0-7-released</guid>
+        <description><![CDATA[ <p>This release brings USB device support in the command-line tools, and
+adds <code class="highlighter-rouge">frida-ps</code> for enumerating processes both locally and remotely.</p>
+
+<p>For example to enumerate processes on your tethered iOS device:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>frida-ps -U</code></pre></figure>
+
+<p>The <code class="highlighter-rouge">-U</code> switch is also accepted by <code class="highlighter-rouge">frida-trace</code> and <code class="highlighter-rouge">frida-discover</code>.</p>
+
+<p>Docs how to set this up on your iOS device will soon be added to the website.</p>
+
+<p>However, that’s not the most exciting part. Starting with this release,
+Frida got its first contribution since the HN launch.
+<a href="https://github.com/pmorici">Pete Morici</a> dived in and contributed support
+for specifying module-relative functions in <code class="highlighter-rouge">frida-trace</code>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>frida-trace -a <span class="s1">'kernel32.dll+0x1234'</span></code></pre></figure>
+
+<p>Enjoy!</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.0.6 Released</title>
+        <link>http://www.frida.re/news/2014/01/11/frida-1-0-6-released/</link>
+        <pubDate>Sat, 11 Jan 2014 14:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/01/11/frida-1-0-6-released</guid>
+        <description><![CDATA[ <p>This release simplifies the licensing and fixes bugs reported by the community
+since the HN launch.</p>
+
+<p>Primarily:
+- Relicense remaining GPLv3+ Frida components to LGPLv2.1+ (same as frida-gum).
+- Tracer works on 64-bit with function addresses in the upper range
+- Linux build links with Frida’s own libraries instead of the build machine’s
+  corresponding libraries.</p>
+ ]]></description>
+    </item>
+    
+    <item>
+        <title>Frida 1.0.5 Released</title>
+        <link>http://www.frida.re/news/2014/01/05/frida-1-0-5-released/</link>
+        <pubDate>Sun, 05 Jan 2014 14:00:00 -0800</pubDate>
+        <dc:creator>oleavr</dc:creator>
+        <category>release</category>
+        <guid isPermaLink="false">/news/2014/01/05/frida-1-0-5-released</guid>
+        <description><![CDATA[ <p>This release improves <a href="https://github.com/frida/frida-python/blob/master/src/frida/tracer.py">frida-trace</a> with support for auto-generating,
+loading and reloading function handlers from scripts on the filesystem.
+Have a look at our <a href="/docs/quickstart">Quick-start guide</a> for a walkthrough.
+Also new in this release is Py3k support, which is available from <a href="https://pypi.python.org/pypi/frida">PyPI</a> on
+all platforms.</p>
+
+ ]]></description>
+    </item>
+    
+</channel>
+</rss>
