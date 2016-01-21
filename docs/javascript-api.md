@@ -171,30 +171,64 @@ session.detach()
 
 ## Frida
 
-+   `Frida.version`: property containing the current Frida version
-
++   `Frida.version`: property containing the current Frida version as a 
+    string
+{% highlight js %}
+> Frida.version
+'6.1.2'
+{% endhighlight %}
 
 ## Process
 
 +   `Process.arch`: property containing the string `ia32`, `x64`, `arm`
     or `arm64`
 
+{% highlight js %}
+> Process.arch
+'x64'
+{% endhighlight %}
+
 +   `Process.platform`: property containing the string `windows`,
     `darwin`, `linux` or `qnx`
+
+{% highlight js %}
+> Process.platform
+'darwin'
+{% endhighlight %}
 
 +   `Process.pageSize`: property containing the size of a virtual memory page
     (in bytes) as a JavaScript number. This is used to make your scripts more
     portable.
 
+{% highlight js %}
+> Process.pageSize
+4096
+{% endhighlight %}
+
 +   `Process.pointerSize`: property containing the size of a pointer
     (in bytes) as a JavaScript number. This is used to make your scripts more
     portable.
 
+{% highlight js %}
+> Process.pageSize
+8
+{% endhighlight %}
+
 +   `Process.isDebuggerAttached()`: returns a boolean indicating whether a
     debugger is currently attached
 
+{% highlight js %}
+> Process.isDebuggerAttached()
+false
+{% endhighlight %}
+
 +   `Process.getCurrentThreadId()`: get this thread's OS-specific id as a
     JavaScript number
+
+{% highlight js %}
+> Process.getCurrentThreadId()
+7683
+{% endhighlight %}
 
 +   `Process.enumerateThreads(callbacks)`: enumerate all threads,
     where `callbacks` is an object specifying:
@@ -215,6 +249,34 @@ session.detach()
 
 +   `Process.enumerateThreadsSync()`: synchronous version of
     `enumerateThreads()` that returns the threads in an array.
+
+{% highlight js %}
+> Process.enumerateThreads({
+      onMatch: function(thread){
+          // Indent 4 spaces
+          console.log(JSON.stringify(thread, null, 4))
+      },
+      onComplete: function(){
+          console.log("All Done!")
+      }
+  })
+{
+    "id": 5635,
+    "state": "waiting",
+    "context": {
+        "rip": "0x7fff92f326de",
+        "rbp": "0x700000116f50",
+        "rsp": "0x700000116f08",
+        "rbx": "0x80000000",
+        ...SNIP...
+        "rcx": "0x700000116f08",
+        "rax": "0x2000170",
+        "sp": "0x700000116f08",
+        "pc": "0x7fff92f326de"
+    }
+}
+All Done!
+{% endhighlight %}
 
 +   `Process.findModuleByAddress(address)`,
     `Process.getModuleByAddress(address)`,
@@ -242,6 +304,31 @@ session.detach()
 
 +   `Process.enumerateModulesSync()`: synchronous version of
     `enumerateModules()` that returns the modules in an array.
+
+{% highlight js %}
+> Process.enumerateModules({
+      onMatch: function(module) {
+          console.log(JSON.stringify(module, null, 4))
+      },
+      onComplete: function(){
+          console.log("All Done!")
+      }
+  })
+
+{
+    "name": "libc++.1.dylib",
+    "base": "0x7fff90347000",
+    "size": 344064,
+    "path": "/usr/lib/libc++.1.dylib"
+}
+{
+    "name": "libDiagnosticMessagesClient.dylib",
+    "base": "0x7fff9daec000",
+    "size": 8192,
+    "path": "/usr/lib/libDiagnosticMessagesClient.dylib"
+}
+All Done!
+{% endhighlight %}
 
 +   `Process.findRangeByAddress(address)`, `getRangeByAddress(address)`:
     return an object with details about the range containing *address*. In the
